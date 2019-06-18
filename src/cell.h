@@ -34,8 +34,10 @@ private:
 	vector <center> oct;
 public:
 	void init(ifstream& in);
+	void first_read(ifstream& in);
 	void read(ifstream& in);
-	void get_oct();		// Bi-Bi < 4.7; Fe-Bi < 4.0; Fe-O < 2.8
+	void regist_oct();		// Bi-Bi < 4.7; Fe-Bi < 4.0; Fe-O < 2.8
+	void rebuild_oct();
 
 	void print();
 };

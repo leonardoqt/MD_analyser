@@ -12,7 +12,9 @@ int main()
 
 	in.open("dump.xyz");
 	sys1.init(in);
-	sys1.read(in);
-	sys1.print();
+	sys1.first_read(in);
+	sys1.regist_oct();
+	sys1.rebuild_oct();
+//	sys1.print();
 	return 0;
 }
