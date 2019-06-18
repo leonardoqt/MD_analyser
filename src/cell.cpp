@@ -7,25 +7,42 @@ using namespace std;
 
 void cell :: init(ifstream& in)
 {
-	string label_tri="xy xz yz";
+	string label_num = "ITEM: NUMBER OF ATOMS";
 	string tmp;
-	in.clear(); in.seekg(ios::beg);
 	// get number of atoms
 	getline(in,tmp);
-	getline(in,tmp);
-	getline(in,tmp);
+	while(tmp.find(label_num) == string::npos)
+		getline(in,tmp);
 	in>>num_a;
-	getline(in,tmp);
 	num_a /= 5;
 	num_b = num_a;
 	num_c = 3*num_a;
-	// check if triclinic or not
+	// allocate cell
 	shift.resize(3);
 	param.resize(3);
 	param[0].resize(3);
 	param[1].resize(3);
 	param[2].resize(3);
+	// allocate all vectors
+	A.resize(num_a);
+	B.resize(num_b);
+	C.resize(num_c);
+	oct.resize(num_b);
+	// rewind ifstream
+	in.clear(); in.seekg(ios::beg);
+}
+
+void cell :: first_read(ifstream& in)
+{
+	string label_cell = "ITEM: BOX";
+	string label_tri = "xy xz yz";
+	string label_atom = "ITEM: ATOMS";
+	string tmp;
+	// find cell parameter
 	getline(in,tmp);
+	while(tmp.find(label_cell) == string::npos)
+		getline(in,tmp);
+	// check if triclinic or not
 	if(tmp.find(label_tri) == string::npos)
 	{
 		// not triclinic
@@ -57,17 +74,7 @@ void cell :: init(ifstream& in)
 		param[1][1] -= shift[1];
 		param[2][2] -= shift[2];
 	}
-	// allocate all vectors
-	A.resize(num_a);
-	B.resize(num_b);
-	C.resize(num_c);
-	oct.resize(num_b);
-}
-
-void cell :: first_read(ifstream& in)
-{
-	string label_atom = "ITEM: ATOMS";
-	string tmp;
+	// get position of atoms
 	getline(in,tmp);
 	while(tmp.find(label_atom) == string::npos)
 		getline(in,tmp);
@@ -90,25 +97,128 @@ void cell :: first_read(ifstream& in)
 
 void cell :: read(ifstream& in)
 {
+	string label_cell = "ITEM: BOX";
+	string label_tri = "xy xz yz";
 	string label_atom = "ITEM: ATOMS";
 	string tmp;
+	site tmp_site, tmp_corr;
+	// find cell parameter
+	getline(in,tmp);
+	while(tmp.find(label_cell) == string::npos)
+		getline(in,tmp);
+	// check if triclinic or not
+	if(tmp.find(label_tri) == string::npos)
+	{
+		// not triclinic
+		in>>shift[0]>>param[0][0];
+		getline(in,tmp);
+		in>>shift[1]>>param[1][1];
+		getline(in,tmp);
+		in>>shift[2]>>param[2][2];
+		getline(in,tmp);
+		param[0][1] = param[0][2] = 0;
+		param[1][0] = param[1][2] = 0;
+		param[2][0] = param[2][1] = 0;
+		param[0][0] -= shift[0];
+		param[1][1] -= shift[1];
+		param[2][2] -= shift[2];
+	}
+	else
+	{
+		// triclinic
+		in>>shift[0]>>param[0][0]>>param[1][0];
+		getline(in,tmp);
+		in>>shift[1]>>param[1][1]>>param[2][0];
+		getline(in,tmp);
+		in>>shift[2]>>param[2][2]>>param[2][1];
+		getline(in,tmp);
+		param[0][1] = param[0][2] = 0;
+		param[1][2] = 0;
+		param[0][0] -= shift[0];
+		param[1][1] -= shift[1];
+		param[2][2] -= shift[2];
+	}
+	// get position of atoms
 	getline(in,tmp);
 	while(tmp.find(label_atom) == string::npos)
 		getline(in,tmp);
 	for(auto& m1 : A)
 	{
-		in>>m1;
+		in>>tmp_site;
 		getline(in,tmp);
+		if(tmp_site.pos[0] - m1.pos[0] >= param[0][0]/2)
+			tmp_corr.pos[0] = -1;
+		else if(tmp_site.pos[0] - m1.pos[0] <= -param[0][0]/2)
+			tmp_corr.pos[0] = 1;
+		else
+			tmp_corr.pos[0] = 0;
+		if(tmp_site.pos[1] - m1.pos[1] >= param[1][1]/2)
+			tmp_corr.pos[1] = -1;
+		else if(tmp_site.pos[1] - m1.pos[1] <= -param[1][1]/2)
+			tmp_corr.pos[1] = 1;
+		else
+			tmp_corr.pos[1] = 0;
+		if(tmp_site.pos[2] - m1.pos[2] >= param[2][2]/2)
+			tmp_corr.pos[2] = -1;
+		else if(tmp_site.pos[2] - m1.pos[2] <= -param[2][2]/2)
+			tmp_corr.pos[2] = 1;
+		else
+			tmp_corr.pos[2] = 0;
+		m1.pos[0] = tmp_site.pos[0] + tmp_corr.pos[0]*param[0][0]+tmp_corr.pos[1]*param[1][0]+tmp_corr.pos[2]*param[2][0];
+		m1.pos[1] = tmp_site.pos[1] + tmp_corr.pos[1]*param[1][1]+tmp_corr.pos[2]*param[2][1];
+		m1.pos[2] = tmp_site.pos[2] + tmp_corr.pos[2]*param[2][2];
 	}
 	for(auto& m1 : B)
 	{
-		in>>m1;
+		in>>tmp_site;
 		getline(in,tmp);
+		if(tmp_site.pos[0] - m1.pos[0] >= param[0][0]/2)
+			tmp_corr.pos[0] = -1;
+		else if(tmp_site.pos[0] - m1.pos[0] <= -param[0][0]/2)
+			tmp_corr.pos[0] = 1;
+		else
+			tmp_corr.pos[0] = 0;
+		if(tmp_site.pos[1] - m1.pos[1] >= param[1][1]/2)
+			tmp_corr.pos[1] = -1;
+		else if(tmp_site.pos[1] - m1.pos[1] <= -param[1][1]/2)
+			tmp_corr.pos[1] = 1;
+		else
+			tmp_corr.pos[1] = 0;
+		if(tmp_site.pos[2] - m1.pos[2] >= param[2][2]/2)
+			tmp_corr.pos[2] = -1;
+		else if(tmp_site.pos[2] - m1.pos[2] <= -param[2][2]/2)
+			tmp_corr.pos[2] = 1;
+		else
+			tmp_corr.pos[2] = 0;
+		m1.pos[0] = tmp_site.pos[0] + tmp_corr.pos[0]*param[0][0]+tmp_corr.pos[1]*param[1][0]+tmp_corr.pos[2]*param[2][0];
+		m1.pos[1] = tmp_site.pos[1] + tmp_corr.pos[1]*param[1][1]+tmp_corr.pos[2]*param[2][1];
+		m1.pos[2] = tmp_site.pos[2] + tmp_corr.pos[2]*param[2][2];
 	}
 	for(auto& m1 : C)
 	{
-		in>>m1;
+		in>>tmp_site;
 		getline(in,tmp);
+		if(tmp_site.pos[0] - m1.pos[0] >= param[0][0]/2)
+			tmp_corr.pos[0] = -1;
+		else if(tmp_site.pos[0] - m1.pos[0] <= -param[0][0]/2)
+			tmp_corr.pos[0] = 1;
+		else
+			tmp_corr.pos[0] = 0;
+		if(tmp_site.pos[1] - m1.pos[1] >= param[1][1]/2)
+			tmp_corr.pos[1] = -1;
+		else if(tmp_site.pos[1] - m1.pos[1] <= -param[1][1]/2)
+			tmp_corr.pos[1] = 1;
+		else
+			tmp_corr.pos[1] = 0;
+		if(tmp_site.pos[2] - m1.pos[2] >= param[2][2]/2)
+			tmp_corr.pos[2] = -1;
+		else if(tmp_site.pos[2] - m1.pos[2] <= -param[2][2]/2)
+			tmp_corr.pos[2] = 1;
+		else
+			tmp_corr.pos[2] = 0;
+		m1.pos[0] = tmp_site.pos[0] + tmp_corr.pos[0]*param[0][0]+tmp_corr.pos[1]*param[1][0]+tmp_corr.pos[2]*param[2][0];
+		m1.pos[1] = tmp_site.pos[1] + tmp_corr.pos[1]*param[1][1]+tmp_corr.pos[2]*param[2][1];
+		m1.pos[2] = tmp_site.pos[2] + tmp_corr.pos[2]*param[2][2];
 	}
 }
 
@@ -209,8 +319,8 @@ void cell :: rebuild_oct()
 	for(auto& m1 : oct)
 	{
 		cout<<"Fe "<<m1.B<<endl;
-		for(auto& m2 : m1.C)
-			cout<<"O "<<m2<<endl;
+		for(auto& m2 : m1.A)
+			cout<<"Bi "<<m2<<endl;
 	}
 
 }
