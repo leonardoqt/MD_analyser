@@ -1,4 +1,5 @@
 #include <cstring>
+#include <sstream>
 #include <iomanip>
 #include <cmath>
 #include "cell.h"
@@ -34,63 +35,53 @@ void cell :: init(ifstream& in)
 
 void cell :: first_read(ifstream& in)
 {
-	string label_cell = "ITEM: BOX";
+	string label_cell = "xlo xhi";
 	string label_tri = "xy xz yz";
-	string label_atom = "ITEM: ATOMS";
+	string label_atom = "Atoms";
+	stringstream ss;
 	string tmp;
 	// find cell parameter
 	getline(in,tmp);
 	while(tmp.find(label_cell) == string::npos)
 		getline(in,tmp);
+	ss<<(tmp);
+	ss>>shift[0]>>param[0][0];
+	in>>shift[1]>>param[1][1];
+	getline(in,tmp);
+	in>>shift[2]>>param[2][2];
+	getline(in,tmp);
+	param[0][1] = param[0][2] = 0;
+	param[1][0] = param[1][2] = 0;
+	param[2][0] = param[2][1] = 0;
+	param[0][0] -= shift[0];
+	param[1][1] -= shift[1];
+	param[2][2] -= shift[2];
 	// check if triclinic or not
-	if(tmp.find(label_tri) == string::npos)
+	getline(in,tmp);
+	if(tmp.find(label_tri) != string::npos)
 	{
-		// not triclinic
-		in>>shift[0]>>param[0][0];
-		getline(in,tmp);
-		in>>shift[1]>>param[1][1];
-		getline(in,tmp);
-		in>>shift[2]>>param[2][2];
-		getline(in,tmp);
-		param[0][1] = param[0][2] = 0;
-		param[1][0] = param[1][2] = 0;
-		param[2][0] = param[2][1] = 0;
-		param[0][0] -= shift[0];
-		param[1][1] -= shift[1];
-		param[2][2] -= shift[2];
-	}
-	else
-	{
-		// triclinic
-		in>>shift[0]>>param[0][0]>>param[1][0];
-		getline(in,tmp);
-		in>>shift[1]>>param[1][1]>>param[2][0];
-		getline(in,tmp);
-		in>>shift[2]>>param[2][2]>>param[2][1];
-		getline(in,tmp);
-		param[0][1] = param[0][2] = 0;
-		param[1][2] = 0;
-		param[0][0] -= shift[0];
-		param[1][1] -= shift[1];
-		param[2][2] -= shift[2];
+		ss.str(""); ss.clear();
+		ss<<(tmp);
+		ss>>param[1][0]>>param[2][0]>>param[2][1];
 	}
 	// get position of atoms
 	getline(in,tmp);
 	while(tmp.find(label_atom) == string::npos)
 		getline(in,tmp);
+	getline(in,tmp);
 	for(auto& m1 : A)
 	{
-		in>>m1;
+		in>>tmp>>tmp>>tmp>>tmp>>m1;
 		getline(in,tmp);
 	}
 	for(auto& m1 : B)
 	{
-		in>>m1;
+		in>>tmp>>tmp>>tmp>>tmp>>m1;
 		getline(in,tmp);
 	}
 	for(auto& m1 : C)
 	{
-		in>>m1;
+		in>>tmp>>tmp>>tmp>>tmp>>m1;
 		getline(in,tmp);
 	}
 }

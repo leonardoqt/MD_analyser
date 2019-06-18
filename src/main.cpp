@@ -7,13 +7,14 @@ using namespace std;
 
 int main()
 {
-	ifstream in;
+	ifstream in, dat;
 	cell sys1;
 	int num_iter;
 	string label_iter="ITEM: TIMESTEP";
 	string tmp;
 
 	in.open("dump.xyz");
+	dat.open("BFO.data");
 	// find number of iterations
 	num_iter = 0;
 	while(!in.eof())
@@ -25,11 +26,10 @@ int main()
 	in.clear(); in.seekg(ios::beg);
 	// initialize cell
 	sys1.init(in);
-	sys1.first_read(in);
+	sys1.first_read(dat);
 	sys1.regist_oct();
 	// calculate polarization
-	cout<<0<<sys1.ave_p()<<endl;
-	for(size_t t1=1; t1<num_iter; t1++)
+	for(size_t t1=0; t1<num_iter; t1++)
 	{
 		sys1.read(in);
 		sys1.rebuild_oct();
