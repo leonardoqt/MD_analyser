@@ -41,7 +41,7 @@ public:
 	void read(ifstream& in);
 	void regist_oct();		// Bi-Bi < 4.7; Fe-Bi < 4.0; Fe-O < 2.8
 	void rebuild_oct();
-	site ave_p();
+	site ave_p(site& ave, site& std_err);
 
 	void print();
 };

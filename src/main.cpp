@@ -12,6 +12,7 @@ int main()
 	int num_iter;
 	string label_iter="ITEM: TIMESTEP";
 	string tmp;
+	site ave_p, std_err_p;
 
 	in.open("dump.xyz");
 	dat.open("BFO.data");
@@ -33,7 +34,8 @@ int main()
 	{
 		sys1.read(in);
 		sys1.rebuild_oct();
-		cout<<t1<<sys1.ave_p()<<endl;
+		sys1.ave_p(ave_p,std_err_p);
+		cout<<t1<<ave_p<<std_err_p<<endl;
 	}
 	return 0;
 }

@@ -316,14 +316,17 @@ void cell :: rebuild_oct()
 */
 }
 
-site cell :: ave_p()
+site cell :: ave_p(site& ave, site& std_err)
 {
 	site res, tmp;
 	res.clear();
+	ave.clear();
+	std_err.clear();
 	for(auto& m1 : oct)
 	{
+		res.clear();
 		// add B
-		res = res + m1.B*q_b;
+		res = m1.B*q_b;
 		//cout<<"Fe "<<m1.B<<endl;
 		// add A
 		tmp.clear();
@@ -343,9 +346,18 @@ site cell :: ave_p()
 		}
 		tmp = tmp*q_c*3/m1.C.size();
 		res = res + tmp;
+		// add to output
+		ave = ave + res;
+		std_err.pos[0] += res.pos[0]*res.pos[0];
+		std_err.pos[1] += res.pos[1]*res.pos[1];
+		std_err.pos[2] += res.pos[2]*res.pos[2];
 		//cout<<endl;
 	}
-	res = res / num_b;
+	ave = ave / num_b;
+	std_err.pos[0] = sqrt(std_err.pos[0]/num_b - ave.pos[0]*ave.pos[0]);
+	std_err.pos[1] = sqrt(std_err.pos[1]/num_b - ave.pos[1]*ave.pos[1]);
+	std_err.pos[2] = sqrt(std_err.pos[2]/num_b - ave.pos[2]*ave.pos[2]);
+	res = ave;
 	return res;
 }
 
