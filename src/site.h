@@ -13,9 +13,14 @@ public:
 	vector <double> pos;
 
 	site();
+	void clear();
+	site operator+(const site&);
+	site operator-(const site&);
+	site operator*(const double&);
+	site operator/(const double&);
 	friend istream& operator>>(istream&, site&);
-	friend ostream& operator<<(ostream&, site&);
+	friend ostream& operator<<(ostream&, site);
 	friend ifstream& operator>>(ifstream&, site&);
-	friend ofstream& operator<<(ofstream&, site&);
+	friend ofstream& operator<<(ofstream&, site);
 };
 #endif

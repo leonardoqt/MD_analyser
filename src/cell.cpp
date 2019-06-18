@@ -315,14 +315,47 @@ void cell :: rebuild_oct()
 			oct[t1].C[t2].pos[2] = C[oct[t1].ind_C[t2]].pos[2] + oct[t1].corr_C[t2].pos[2]*param[2][2];
 		}
 	}
-
+/*
 	for(auto& m1 : oct)
 	{
 		cout<<"Fe "<<m1.B<<endl;
 		for(auto& m2 : m1.A)
 			cout<<"Bi "<<m2<<endl;
 	}
+*/
+}
 
+site cell :: ave_p()
+{
+	site res, tmp;
+	res.clear();
+	for(auto& m1 : oct)
+	{
+		// add B
+		res = res + m1.B*q_b;
+		//cout<<"Fe "<<m1.B<<endl;
+		// add A
+		tmp.clear();
+		for(auto& m2 : m1.A)
+		{
+			tmp = tmp + m2;
+			//cout<<"Bi "<<m2<<endl;
+		}
+		tmp = tmp*q_a/m1.A.size();
+		res = res + tmp;
+		// add C
+		tmp.clear();
+		for(auto& m2 : m1.C)
+		{
+			tmp = tmp + m2;
+			//cout<<"O  "<<m2<<endl;
+		}
+		tmp = tmp*q_c*3/m1.C.size();
+		res = res + tmp;
+		//cout<<endl;
+	}
+	res = res / num_b;
+	return res;
 }
 
 

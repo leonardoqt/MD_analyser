@@ -32,12 +32,16 @@ private:
 	vector <site> B;
 	vector <site> C;
 	vector <center> oct;
+	const double q_a = 3;
+	const double q_b = 3;
+	const double q_c = -2;
 public:
 	void init(ifstream& in);
 	void first_read(ifstream& in);
 	void read(ifstream& in);
 	void regist_oct();		// Bi-Bi < 4.7; Fe-Bi < 4.0; Fe-O < 2.8
 	void rebuild_oct();
+	site ave_p();
 
 	void print();
 };
