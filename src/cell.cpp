@@ -123,6 +123,12 @@ void cell :: read(ifstream& in)
 		getline(in,tmp);
 		in>>shift[2]>>param[2][2]>>param[2][1];
 		getline(in,tmp);
+		// adjust based on https://lammps.sandia.gov/doc/Howto_triclinic.html
+		if (param[2][1]>0) param[1][1] -= param[2][1];
+		if (param[2][1]<0) shift[1]    -= param[2][1];
+		if (max(max(param[1][0],param[2][0]),param[1][0]+param[2][0])>0) param[0][0] -= max(max(param[1][0],param[2][0]),param[1][0]+param[2][0]);
+		if (min(min(param[1][0],param[2][0]),param[1][0]+param[2][0])<0) shift[0]    -= min(min(param[1][0],param[2][0]),param[1][0]+param[2][0]);
+		// end adjust
 		param[0][1] = param[0][2] = 0;
 		param[1][2] = 0;
 		param[0][0] -= shift[0];
