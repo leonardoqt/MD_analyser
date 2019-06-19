@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <cmath>
+#include <fstream>
 #include "cell.h"
 
 using namespace std;
@@ -221,6 +222,7 @@ void cell :: read(ifstream& in)
 
 void cell :: regist_oct()
 {
+	ofstream out;
 	site tmp;
 	double dis_aa = 4.7, dis_ab = 4.2, dis_bc = 2.8, dis;
 	double xx2 = param[0][0]/2, yy2 = param[1][1]/2, zz2 = param[2][2]/2;
@@ -283,7 +285,19 @@ void cell :: regist_oct()
 			m1.C.back().pos[2] += tmp.pos[2]*param[2][2];
 		}
 	}
-//	cout<<m1.C.size()<<endl;
+	// save neighbor to file
+	out.open("neighbor_list.dat");
+	for(size_t t1=0; t1<num_b; t1++)
+	{
+		out<<t1;
+		out<<' '<<oct[t1].ind_A.size()<<' '<<oct[t1].ind_C.size();
+		for(auto& m2 : oct[t1].ind_A)
+			out<<' '<<m2;
+		for(auto& m2 : oct[t1].ind_C)
+			out<<' '<<m2;
+		out<<endl;
+	}
+	out.close();
 /*
 	for(auto& m1 : oct)
 	{
@@ -292,6 +306,67 @@ void cell :: regist_oct()
 			cout<<"O "<<m2<<endl;
 	}
 */
+}
+
+int cell :: recover_oct()
+{
+	ifstream in;
+	in.open("neighbor_list.dat");
+	double xx2 = param[0][0]/2, yy2 = param[1][1]/2, zz2 = param[2][2]/2;
+	int nn_a, nn_c;
+	string tmp;
+	if(in.good())
+	{
+		// get index
+		for(size_t t1=0; t1<num_b; t1++)
+		{
+			// site B
+			oct[t1].B = B[t1];
+			in>>tmp>>nn_a>>nn_c;
+			oct[t1].A.resize(nn_a);
+			oct[t1].corr_A.resize(nn_a);
+			oct[t1].ind_A.resize(nn_a);
+			oct[t1].C.resize(nn_c);
+			oct[t1].corr_C.resize(nn_c);
+			oct[t1].ind_C.resize(nn_c);
+			// site A
+			for(size_t t2=0; t2<nn_a; t2++)
+				in>>oct[t1].ind_A[t2];
+			// site C
+			for(size_t t2=0; t2<nn_c; t2++)
+				in>>oct[t1].ind_C[t2];
+			getline(in,tmp);
+		}
+		// get correction
+		for(auto& m1 : oct)
+		{
+			// site A
+			for(size_t t2=0; t2<m1.ind_A.size(); t2++)
+			{
+				m1.corr_A[t2].clear();
+				if(m1.B.pos[0] - A[m1.ind_A[t2]].pos[0] >=  xx2) m1.corr_A[t2].pos[0] =  1;
+				else if(m1.B.pos[0] - A[m1.ind_A[t2]].pos[0] <= -xx2) m1.corr_A[t2].pos[0] = -1;
+				if(m1.B.pos[1] - A[m1.ind_A[t2]].pos[1] >=  yy2) m1.corr_A[t2].pos[1] =  1;
+				else if(m1.B.pos[1] - A[m1.ind_A[t2]].pos[1] <= -yy2) m1.corr_A[t2].pos[1] = -1;
+				if(m1.B.pos[2] - A[m1.ind_A[t2]].pos[2] >=  zz2) m1.corr_A[t2].pos[2] =  1;
+				else if(m1.B.pos[2] - A[m1.ind_A[t2]].pos[2] <= -zz2) m1.corr_A[t2].pos[2] = -1;
+			}
+			// site C
+			for(size_t t2=0; t2<m1.ind_C.size(); t2++)
+			{
+				m1.corr_C[t2].clear();
+				if(m1.B.pos[0] - C[m1.ind_C[t2]].pos[0] >=  xx2) m1.corr_C[t2].pos[0] =  1;
+				else if(m1.B.pos[0] - C[m1.ind_C[t2]].pos[0] <= -xx2) m1.corr_C[t2].pos[0] = -1;
+				if(m1.B.pos[1] - C[m1.ind_C[t2]].pos[1] >=  yy2) m1.corr_C[t2].pos[1] =  1;
+				else if(m1.B.pos[1] - C[m1.ind_C[t2]].pos[1] <= -yy2) m1.corr_C[t2].pos[1] = -1;
+				if(m1.B.pos[2] - C[m1.ind_C[t2]].pos[2] >=  zz2) m1.corr_C[t2].pos[2] =  1;
+				else if(m1.B.pos[2] - C[m1.ind_C[t2]].pos[2] <= -zz2) m1.corr_C[t2].pos[2] = -1;
+			}
+		}
+		return 1;
+	}
+	else
+		return 0;
 }
 
 void cell :: rebuild_oct()

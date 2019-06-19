@@ -28,7 +28,7 @@ int main()
 	// initialize cell
 	sys1.init(in);
 	sys1.first_read(dat);
-	sys1.regist_oct();
+	if (!sys1.recover_oct()) sys1.regist_oct();
 	// calculate polarization
 	for(size_t t1=0; t1<num_iter; t1++)
 	{
