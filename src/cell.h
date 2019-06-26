@@ -32,9 +32,10 @@ private:
 	vector <site> B;
 	vector <site> C;
 	vector <center> oct;
-	const double q_a = 3;
-	const double q_b = 3;
-	const double q_c = -2;
+	//	For BFO, Bi=4.68 Fe=3.66 O=-2.78
+	const double q_a = 4.68;
+	const double q_b = 3.66;
+	const double q_c = -2.78;
 public:
 	void init(ifstream& in);
 	void first_read(ifstream& in);
