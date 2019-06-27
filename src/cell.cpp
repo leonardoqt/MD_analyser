@@ -5,6 +5,10 @@
 #include <fstream>
 #include "cell.h"
 
+#ifdef __SPECTRA__
+#include <fftw3.h>
+#endif
+
 using namespace std;
 
 void cell :: init(ifstream& in)
@@ -441,6 +445,76 @@ site cell :: ave_p(site& ave, site& std_err)
 	res = ave;
 	return res;
 }
+
+#ifdef __SPECTRA__
+void cell :: init_spectra(int max_iter)
+{
+	tot_step = max_iter;
+	dw = 1.0/(dt*(max_iter-1));
+	freq.resize(max_iter);
+	spectra.resize(max_iter);
+	traj = new double*[max_iter];
+	for(size_t t1=0; t1<max_iter; t1++)
+		traj[t1] = new double[(num_a+num_b+num_c)*3];
+}
+
+void cell:: save_traj(int iter)
+{
+	freq[iter] = iter*dw;
+	for(size_t t1=0; t1<num_a; t1++)
+	{
+		traj[iter][t1*3+0] = A[t1].pos[0];
+		traj[iter][t1*3+1] = A[t1].pos[1];
+		traj[iter][t1*3+2] = A[t1].pos[2];
+	}
+	for(size_t t1=0; t1<num_b; t1++)
+	{
+		traj[iter][(num_a+t1)*3+0] = B[t1].pos[0];
+		traj[iter][(num_a+t1)*3+1] = B[t1].pos[1];
+		traj[iter][(num_a+t1)*3+2] = B[t1].pos[2];
+	}
+	for(size_t t1=0; t1<num_c; t1++)
+	{
+		traj[iter][(num_a+num_b+t1)*3+0] = C[t1].pos[0];
+		traj[iter][(num_a+num_b+t1)*3+1] = C[t1].pos[1];
+		traj[iter][(num_a+num_b+t1)*3+2] = C[t1].pos[2];
+	}
+}
+
+void cell :: get_spectra()
+{
+	double mean;
+	// initialize fft
+	fftw_complex *input, *output;
+	fftw_plan p0;
+
+	input  = new fftw_complex[tot_step];
+	output = new fftw_complex[tot_step];
+	p0 = fftw_plan_dft_1d(tot_step, input, output, -1, FFTW_ESTIMATE);
+
+	for(size_t t1=0; t1<tot_step; t1++)
+		spectra[t1] = 0;
+	// loop for each degree of freedom(DOF)
+	for(size_t t1=0; t1<(num_a+num_b+num_c)*3; t1++)
+	{
+		mean = 0;
+		for(size_t t2=0; t2<tot_step; t2++)
+			mean += traj[t2][t1];
+		mean /= tot_step;
+		for(size_t t2=0; t2<tot_step; t2++)
+		{
+			input[t2][0] = traj[t2][t1] - mean;
+			input[t2][1] = 0;
+		}
+		fftw_execute(p0);
+		for(size_t t2=0; t2<tot_step; t2++)
+			spectra[t2] += (output[t2][0]*output[t2][0]+output[t2][1]*output[t2][1]);
+	}
+	for(size_t t1=0; t1<tot_step; t1++)
+		spectra[t1] *= freq[t1]*freq[t1]/3/(num_a+num_b+num_c);
+}
+#endif
+
 
 
 void cell :: print()

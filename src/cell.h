@@ -36,6 +36,14 @@ private:
 	const double q_a = 4.68;
 	const double q_b = 3.66;
 	const double q_c = -2.78;
+	// fft related data
+#ifdef __SPECTRA__
+	const double dt = 0.04;
+	double dw;
+	int tot_step;
+	double **traj;
+#endif
+
 public:
 	void init(ifstream& in);
 	void first_read(ifstream& in);
@@ -44,6 +52,13 @@ public:
 	int  recover_oct();
 	void rebuild_oct();
 	site ave_p(site& ave, site& std_err);
+#ifdef __SPECTRA__
+	vector <double> freq;
+	vector <double> spectra;
+	void init_spectra(int max_iter);
+	void save_traj(int iter);
+	void get_spectra();
+#endif
 
 	void print();
 };
