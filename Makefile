@@ -14,7 +14,7 @@ analyser.x : $(OBJ)
 	$(CXX) -o $@ $^ $(DFLAG) $(CFLAG)
 
 $(ODIR)/%.o : $(SDIR)/%.cpp $(DEPS) | $(ODIR)/.
-	$(CXX) -c -o $@ $< $(CFLAG)
+	$(CXX) -c -o $@ $< $(DFLAG) $(CFLAG)
 
 %/. : 
 	mkdir -p $(patsubst %/.,%,$@)
