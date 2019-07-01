@@ -13,8 +13,20 @@ using namespace std;
 
 void cell :: init(ifstream& in)
 {
+	string label_iter = "ITEM: TIMESTEP";
 	string label_num = "ITEM: NUMBER OF ATOMS";
 	string tmp;
+	// get number of iteration
+	tot_step = 0;
+	while(!in.eof())
+	{
+		getline(in,tmp);
+		if(tmp.find(label_iter) != string::npos)
+			tot_step++;
+	}
+	in.clear(); in.seekg(ios::beg);
+	polarization.resize(tot_step);
+	polarization_stderr.resize(tot_step);
 	// get number of atoms
 	getline(in,tmp);
 	while(tmp.find(label_num) == string::npos)
@@ -36,22 +48,6 @@ void cell :: init(ifstream& in)
 	oct.resize(num_b);
 	// rewind ifstream
 	in.clear(); in.seekg(ios::beg);
-}
-
-void cell :: init_spectra(int max_iter)
-{
-	tot_step = max_iter;
-	polarization.resize(max_iter);
-	polarization_stderr.resize(max_iter);
-#ifdef __SPECTRA__
-	dw = 1.0/(dt*(max_iter-1));
-	freq.resize(max_iter);
-	p_w.resize(max_iter);
-	spectra.resize(max_iter);
-	traj = new double*[max_iter];
-	for(size_t t1=0; t1<max_iter; t1++)
-		traj[t1] = new double[(num_a+num_b+num_c)*3];
-#endif
 }
 
 void cell :: first_read(ifstream& in)
@@ -461,6 +457,17 @@ void cell :: ave_p(int iter)
 }
 
 #ifdef __SPECTRA__
+void cell :: init_spectra()
+{
+	dw = 1.0/(dt*(tot_step-1));
+	freq.resize(tot_step);
+	p_w.resize(tot_step);
+	spectra.resize(tot_step);
+	traj = new double*[tot_step];
+	for(size_t t1=0; t1<tot_step; t1++)
+		traj[t1] = new double[(num_a+num_b+num_c)*3];
+}
+
 void cell:: save_traj(int iter)
 {
 	freq[iter] = iter*dw;

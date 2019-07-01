@@ -36,7 +36,6 @@ private:
 	const double q_a = 4.68;
 	const double q_b = 3.66;
 	const double q_c = -2.78;
-	int tot_step;
 #ifdef __SPECTRA__
 	double dw;
 	double **traj;
@@ -44,6 +43,7 @@ private:
 
 public:
 	const double dt = 0.04;
+	int tot_step;
 	vector <site> polarization;
 	vector <site> polarization_stderr;
 	void init(ifstream& in);
@@ -58,7 +58,7 @@ public:
 	vector <site> p_w;	//	fft of polarization
 	vector <double> spectra;
 	void get_p_w();
-	void init_spectra(int max_iter);
+	void init_spectra();
 	void save_traj(int iter);
 	void get_spectra();
 #endif
