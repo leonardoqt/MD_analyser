@@ -53,7 +53,7 @@ int main()
 #ifdef __SPECTRA__
 	sys1.get_p_w();
 	sys1.get_spectra();
-	for(size_t t1=0; t1<num_iter; t1++)
+	for(size_t t1=0; t1<num_iter/2; t1++)
 		out_polar_fft<<fixed<<setprecision(3)<<setw(7)<<sys1.freq[t1]<<sys1.p_w[t1]<<endl;
 	for(size_t t1=0; t1<num_iter/2; t1++)
 		out_power<<fixed<<setprecision(3)<<setw(7)<<sys1.freq[t1]<<sys1.spectra[t1]<<endl;
