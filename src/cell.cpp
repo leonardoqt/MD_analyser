@@ -38,6 +38,22 @@ void cell :: init(ifstream& in)
 	in.clear(); in.seekg(ios::beg);
 }
 
+void cell :: init_spectra(int max_iter)
+{
+	tot_step = max_iter;
+	polarization.resize(max_iter);
+	polarization_stderr.resize(max_iter);
+#ifdef __SPECTRA__
+	dw = 1.0/(dt*(max_iter-1));
+	freq.resize(max_iter);
+	p_w.resize(max_iter);
+	spectra.resize(max_iter);
+	traj = new double*[max_iter];
+	for(size_t t1=0; t1<max_iter; t1++)
+		traj[t1] = new double[(num_a+num_b+num_c)*3];
+#endif
+}
+
 void cell :: first_read(ifstream& in)
 {
 	string label_cell = "xlo xhi";
@@ -401,12 +417,12 @@ void cell :: rebuild_oct()
 */
 }
 
-site cell :: ave_p(site& ave, site& std_err)
+void cell :: ave_p(int iter)
 {
 	site res, tmp;
 	res.clear();
-	ave.clear();
-	std_err.clear();
+	polarization[iter].clear();
+	polarization_stderr[iter].clear();
 	for(auto& m1 : oct)
 	{
 		res.clear();
@@ -432,32 +448,19 @@ site cell :: ave_p(site& ave, site& std_err)
 		tmp = tmp*q_c*3/m1.C.size();
 		res = res + tmp;
 		// add to output
-		ave = ave + res;
-		std_err.pos[0] += res.pos[0]*res.pos[0];
-		std_err.pos[1] += res.pos[1]*res.pos[1];
-		std_err.pos[2] += res.pos[2]*res.pos[2];
+		polarization[iter] = polarization[iter] + res;
+		polarization_stderr[iter].pos[0] += res.pos[0]*res.pos[0];
+		polarization_stderr[iter].pos[1] += res.pos[1]*res.pos[1];
+		polarization_stderr[iter].pos[2] += res.pos[2]*res.pos[2];
 		//cout<<endl;
 	}
-	ave = ave / num_b;
-	std_err.pos[0] = sqrt(std_err.pos[0]/num_b - ave.pos[0]*ave.pos[0]);
-	std_err.pos[1] = sqrt(std_err.pos[1]/num_b - ave.pos[1]*ave.pos[1]);
-	std_err.pos[2] = sqrt(std_err.pos[2]/num_b - ave.pos[2]*ave.pos[2]);
-	res = ave;
-	return res;
+	polarization[iter] = polarization[iter] / num_b;
+	polarization_stderr[iter].pos[0] = sqrt(polarization_stderr[iter].pos[0]/num_b - polarization[iter].pos[0]*polarization[iter].pos[0]);
+	polarization_stderr[iter].pos[1] = sqrt(polarization_stderr[iter].pos[1]/num_b - polarization[iter].pos[1]*polarization[iter].pos[1]);
+	polarization_stderr[iter].pos[2] = sqrt(polarization_stderr[iter].pos[2]/num_b - polarization[iter].pos[2]*polarization[iter].pos[2]);
 }
 
 #ifdef __SPECTRA__
-void cell :: init_spectra(int max_iter)
-{
-	tot_step = max_iter;
-	dw = 1.0/(dt*(max_iter-1));
-	freq.resize(max_iter);
-	spectra.resize(max_iter);
-	traj = new double*[max_iter];
-	for(size_t t1=0; t1<max_iter; t1++)
-		traj[t1] = new double[(num_a+num_b+num_c)*3];
-}
-
 void cell:: save_traj(int iter)
 {
 	freq[iter] = iter*dw;
@@ -478,6 +481,35 @@ void cell:: save_traj(int iter)
 		traj[iter][(num_a+num_b+t1)*3+0] = C[t1].pos[0];
 		traj[iter][(num_a+num_b+t1)*3+1] = C[t1].pos[1];
 		traj[iter][(num_a+num_b+t1)*3+2] = C[t1].pos[2];
+	}
+}
+
+void cell :: get_p_w()
+{
+	double mean;
+	// initialize fft
+	fftw_complex *input, *output;
+	fftw_plan p0;
+
+	input  = new fftw_complex[tot_step];
+	output = new fftw_complex[tot_step];
+	p0 = fftw_plan_dft_1d(tot_step, input, output, -1, FFTW_ESTIMATE);
+
+	// calculate p_w
+	for(size_t t1=0; t1<3; t1++)
+	{
+		mean = 0;
+		for(size_t t2=0; t2<tot_step; t2++)
+			mean += polarization[t2].pos[t1];
+		mean /= tot_step;
+		for(size_t t2=0; t2<tot_step; t2++)
+		{
+			input[t2][0] = polarization[t2].pos[t1] - mean;
+			input[t2][1] = 0;
+		}
+		fftw_execute(p0);
+		for(size_t t2=0; t2<tot_step; t2++)
+			p_w[t2].pos[t1] = sqrt(output[t2][0]*output[t2][0]+output[t2][1]*output[t2][1]);
 	}
 }
 
