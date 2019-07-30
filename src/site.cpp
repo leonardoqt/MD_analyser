@@ -62,11 +62,11 @@ ifstream& operator>>(ifstream& in, site& B)
 
 ostream& operator<<(ostream& out, site B)
 {
-	out<<fixed<<setprecision(6)<<setw(11)<<B.pos[0]<<setw(11)<<B.pos[1]<<setw(11)<<B.pos[2];
+	out<<fixed<<setprecision(10)<<setw(15)<<B.pos[0]<<setw(15)<<B.pos[1]<<setw(15)<<B.pos[2];
 	return out;
 }
 ofstream& operator<<(ofstream& out, site B)
 {
-	out<<fixed<<setprecision(6)<<setw(11)<<B.pos[0]<<setw(11)<<B.pos[1]<<setw(11)<<B.pos[2];
+	out<<fixed<<setprecision(10)<<setw(15)<<B.pos[0]<<setw(15)<<B.pos[1]<<setw(15)<<B.pos[2];
 	return out;
 }

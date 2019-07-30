@@ -33,16 +33,16 @@ private:
 	vector <site> C;
 	vector <center> oct;
 	//	For BFO, Bi=4.68 Fe=3.66 O=-2.78
-	const double q_a = 4.68;
-	const double q_b = 3.66;
-	const double q_c = -2.78;
+	const double q_a = 2.9;
+	const double q_b = 6.7;
+	const double q_c = -3.2;
 #ifdef __SPECTRA__
 	double dw;
 	double **traj;
 #endif
 
 public:
-	const double dt = 0.04;
+	const double dt = 0.2;
 	int tot_step;
 	vector <site> polarization;
 	vector <site> polarization_stderr;
