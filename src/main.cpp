@@ -6,7 +6,7 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
 	ifstream in, dat;
 	ofstream out_polar, out_polar_fft, out_power;
@@ -14,8 +14,10 @@ int main()
 	string tmp;
 	site ave_p, std_err_p;
 
-	in.open("dump.xyz");
-	dat.open("BFO.data");
+	//in.open("dump.xyz");
+	//dat.open("BFO.data");
+	in.open(argv[1]);
+	dat.open(argv[2]);
 	// initialize cell
 	sys1.init(in);
 	sys1.first_read(dat);

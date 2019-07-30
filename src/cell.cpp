@@ -48,6 +48,7 @@ void cell :: init(ifstream& in)
 	oct.resize(num_b);
 	// rewind ifstream
 	in.clear(); in.seekg(ios::beg);
+	cout<<"Done cell initialization"<<endl;
 }
 
 void cell :: first_read(ifstream& in)
@@ -58,9 +59,13 @@ void cell :: first_read(ifstream& in)
 	stringstream ss;
 	string tmp;
 	// find cell parameter
+	cout<<"Finding cell parameters"<<endl;
 	getline(in,tmp);
+		cout<<tmp<<endl;
 	while(tmp.find(label_cell) == string::npos)
+	{
 		getline(in,tmp);
+	}
 	ss<<(tmp);
 	ss>>shift[0]>>param[0][0];
 	in>>shift[1]>>param[1][1];
@@ -73,6 +78,7 @@ void cell :: first_read(ifstream& in)
 	param[0][0] -= shift[0];
 	param[1][1] -= shift[1];
 	param[2][2] -= shift[2];
+	cout<<"End finding cell parameters"<<endl;
 	// check if triclinic or not
 	getline(in,tmp);
 	if(tmp.find(label_tri) != string::npos)
@@ -81,6 +87,7 @@ void cell :: first_read(ifstream& in)
 		ss<<(tmp);
 		ss>>param[1][0]>>param[2][0]>>param[2][1];
 	}
+	cout<<"Start reading atom positions"<<endl;
 	// get position of atoms
 	getline(in,tmp);
 	while(tmp.find(label_atom) == string::npos)
@@ -101,6 +108,7 @@ void cell :: first_read(ifstream& in)
 		in>>tmp>>tmp>>tmp>>tmp>>m1;
 		getline(in,tmp);
 	}
+	cout<<"Done cell first read"<<endl;
 }
 
 void cell :: read(ifstream& in)
@@ -322,6 +330,7 @@ void cell :: regist_oct()
 			cout<<"O "<<m2<<endl;
 	}
 */
+	cout<<"Done oct. register"<<endl;
 }
 
 int cell :: recover_oct()
@@ -450,10 +459,12 @@ void cell :: ave_p(int iter)
 		polarization_stderr[iter].pos[2] += res.pos[2]*res.pos[2];
 		//cout<<endl;
 	}
-	polarization[iter] = polarization[iter] / num_b;
+	//polarization[iter] = polarization[iter] / num_b;
+	polarization[iter] = polarization[iter] / param[0][0] / param[1][1] / param[2][2] * 16.02;
 	polarization_stderr[iter].pos[0] = sqrt(polarization_stderr[iter].pos[0]/num_b - polarization[iter].pos[0]*polarization[iter].pos[0]);
 	polarization_stderr[iter].pos[1] = sqrt(polarization_stderr[iter].pos[1]/num_b - polarization[iter].pos[1]*polarization[iter].pos[1]);
 	polarization_stderr[iter].pos[2] = sqrt(polarization_stderr[iter].pos[2]/num_b - polarization[iter].pos[2]*polarization[iter].pos[2]);
+	polarization_stderr[iter] = polarization_stderr[iter] / param[0][0] / param[1][1] / param[2][2] * 16.02;
 }
 
 #ifdef __SPECTRA__
