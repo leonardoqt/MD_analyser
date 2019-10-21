@@ -30,6 +30,8 @@ int main(int argc, char* argv[])
 	out_power.open("power_spectra.dat");
 #endif
 	//===============start calculation=================
+	//cout<<"Start calculating polarization..."<<endl<<"[0/"<<sys1.tot_step<<']';
+	cout<<"Start calculating polarization..."<<endl<<"[0/"<<sys1.tot_step<<']'<<endl;
 	for(size_t t1=0; t1<sys1.tot_step; t1++)
 	{
 		sys1.read(in);
@@ -38,6 +40,8 @@ int main(int argc, char* argv[])
 #ifdef __SPECTRA__
 		sys1.save_traj(t1);
 #endif
+		//cout<<'\r'<<'['<<t1+1<<'/'<<sys1.tot_step<<']';
+		cout<<"\e[A"<<'['<<t1+1<<'/'<<sys1.tot_step<<']'<<endl;
 	}
 	for(size_t t1=0; t1<sys1.tot_step; t1++)
 		out_polar<<fixed<<setprecision(3)<<setw(7)<<t1*sys1.dt<<sys1.polarization[t1]<<sys1.polarization_stderr[t1]<<endl;
@@ -49,5 +53,6 @@ int main(int argc, char* argv[])
 	for(size_t t1=0; t1<sys1.tot_step/2; t1++)
 		out_power<<fixed<<setprecision(3)<<setw(7)<<sys1.freq[t1]<<setprecision(6)<<setw(13)<<sys1.spectra[t1]<<endl;
 #endif
+	cout<<"Job done"<<endl;
 	return 0;
 }
